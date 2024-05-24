@@ -34,30 +34,38 @@ app.post("/new", (req, res) => {
     jokeType: req.body.type
   }
   jokes.push(newJoke);
+  
   res.json(newJoke);
 })
 //5. PUT a joke
-app.put("/put", (req, res) => {
-  const newJoke = {
-    id: jokes.length + 1,
+app.put("/jokes/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const replacementJoke = {
+    id: id,
     jokeText: req.body.text,
-    jokeType: req.body.type
-  }
-  jokes.push(newJoke);
-  res.json(newJoke);
+    jokeType: req.body.type,
+  };
+  const searchIndex = jokes.findIndex((joke) => joke.id === id);
+  jokes[searchIndex] = replacementJoke;
+  console.log(jokes[searchIndex]);
+  res.json(replacementJoke);
 })
 //6. PATCH a joke
-app.patch("/patch", (req, res) => {
-  const newJoke = {
-    id: jokes.length + 1,
-    jokeText: req.body.text,
-    jokeType: req.body.type
-  }
-  jokes.push(newJoke);
-  res.json(newJoke);
+app.patch("/jokes/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const existingJoke = jokes.find((joke) => joke.id === id);
+  const replacementJoke = {
+    id: id,
+    jokeText: req.body.text || existingJoke.jokeText,
+    jokeType: req.body.type || existingJoke.jokeType,
+  };
+  const searchIndex = jokes.findIndex((joke) => joke.id === id);
+  jokes[searchIndex] = replacementJoke;
+  console.log(jokes[searchIndex]);
+  res.json(replacementJoke);
 })
 //7. DELETE Specific joke
-app.delete("/delete:id", (req, res) => {
+app.delete("/jokes/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const searchIndex = jokes.findIndex((joke) => joke.id === id);
   if (searchIndex > -1) {
@@ -70,9 +78,18 @@ app.delete("/delete:id", (req, res) => {
   }
 })
 //8. DELETE All jokes
-app.delete("/delete", (req, res) => {
-  jokes = [];
-  res.sendStatus(200);
+app.delete("/all", (req, res) => {
+  const userKey = req.query.key;
+  if (userKey == masterKey) {
+    jokes = [];
+    res.sendStatus(200);
+  } else {
+    res
+      .status(404)
+      .json({error: `You are not authorized to delete all jokes. Please enter the correct key.`});
+  }
+
+
 })
 
 app.listen(port, () => {
